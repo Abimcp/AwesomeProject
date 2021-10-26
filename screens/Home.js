@@ -10,9 +10,8 @@ import PalettePreview from '../components/PalettePreview';
 const URL = 'https://color-palette-api.kadikraman.now.sh/palettes';
 
 const Home = ({ navigation, route }) => {
-  const newColorPalette = route.params
-    ? route.params.newColorPalette
-    : undefined;
+  const newPalette = route.params ? route.params.newPalette : undefined;
+
   const [palettes, setPalettes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -37,10 +36,10 @@ const Home = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
-    if (newColorPalette) {
-      setPalettes((palettes) => [newColorPalette, ...palettes]);
+    if (newPalette) {
+      setPalettes((current) => [newPalette, ...current]);
     }
-  }, [newColorPalette]);
+  }, [newPalette]);
 
   return (
     <FlatList

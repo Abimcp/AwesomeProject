@@ -2,12 +2,12 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
+  TextInput,
+  Switch,
   FlatList,
   TouchableOpacity,
   Alert,
-  Switch,
 } from 'react-native';
 
 const COLORS = [
@@ -160,61 +160,99 @@ const COLORS = [
   { colorName: 'YellowGreen', hexCode: '#9ACD' },
 ];
 
-const ColorPaletteModal = ({ navigation }) => {
+const AddNewPaletteModal = ({ navigation }) => {
   const [name, setName] = useState('');
+  const [selectedColors, setSelectedColors] = useState([]);
+
+  const handleUpdate = useCallback(
+    (color, newValue) => {
+      if (newValue === true) {
+        setSelectedColors((current) => [...current, color]);
+      } else {
+        setSelectedColors((current) =>
+          current.filter((c) => c.colorName !== color.colorName),
+        );
+      }
+    },
+    [selectedColors, setSelectedColors],
+  );
+
   const handleSubmit = useCallback(() => {
     if (!name) {
-      Alert.alert('Please enter a palette name');
+      Alert.alert('Please add a name to your color palette');
+    } else if (selectedColors.length < 3) {
+      Alert.alert('Please choose at least 3 colors');
     } else {
-      const newColorPalette = {
-        paletteName: name,
-        colors: [],
-      };
-      navigation.navigate('Home', { newColorPalette });
+      navigation.navigate('Home', {
+        newPalette: { paletteName: name, colors: selectedColors },
+      });
     }
-  }, [name]);
+  }, [name, selectedColors]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.name}>Name of your color palette</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="Palette Name"
-      />
+      <View style={styles.heading}>
+        <Text>Name of your color palette</Text>
+        <TextInput style={styles.input} value={name} onChangeText={setName} />
+      </View>
       <FlatList
+        style={styles.list}
         data={COLORS}
         keyExtractor={(item) => item.colorName}
         renderItem={({ item }) => (
-          <View style={styles.color}>
+          <View style={styles.switch}>
             <Text>{item.colorName}</Text>
-            <Switch value={true} onValueChange={() => {}} />
+            <Switch
+              value={
+                !!selectedColors.find(
+                  (color) => color.colorName === item.colorName,
+                )
+              }
+              onValueChange={(newValue) => handleUpdate(item, newValue)}
+            />
           </View>
         )}
       />
-
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Submit</Text>
+      <TouchableOpacity style={styles.buttonWrapper} onPress={handleSubmit}>
+        <View style={styles.button}>
+          <Text style={styles.buttonText}>Submit!</Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
 };
 
-export default ColorPaletteModal;
-
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'white',
+    flex: 1,
+  },
   input: {
     borderWidth: 1,
     borderColor: 'grey',
     padding: 10,
-    marginBottom: 10,
+    marginVertical: 10,
     borderRadius: 5,
+    fontSize: 18,
   },
-  container: {
+  switch: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 10,
-    backgroundColor: 'white',
-    flex: 1,
+    borderBottomColor: 'grey',
+    borderBottomWidth: 1,
+  },
+  list: {
+    paddingHorizontal: 10,
+    marginVertical: 10,
+  },
+  heading: {
+    padding: 10,
+  },
+  buttonWrapper: {
+    height: 100,
+    marginHorizontal: 10,
   },
   button: {
     height: 40,
@@ -227,15 +265,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  name: {
-    marginBottom: 10,
-  },
-  color: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'grey',
-  },
 });
+
+export default AddNewPaletteModal;
